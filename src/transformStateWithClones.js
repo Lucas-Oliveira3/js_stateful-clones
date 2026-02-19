@@ -14,35 +14,43 @@ function transformStateWithClones(state, actions) {
   O objetivo é aplicar cada ação ao estado anterios e retornar um array
   com a modificação.
   */
-  // clear => cria um estado de objeto vazio
   // addProperties- adicionar todos key: valueos pares fornecidos na
   // extraDatapropriedade ao novo state;
   // removeProperties- Remover todas as chaves
   // fornecidas na keysToRemovematriz do state. (ignorar chaves inexistentes)
 
-  // Passar os valores da state para meu novo array;
-  const listState = [];
+  const history = [];
+  // Começamos com um clone para garantir a imutabilidade do original
   let currentState = { ...state };
 
   // laço que irá realizar uma varredura em todas as actions
   for (const action of actions) {
-    if (action.type === 'clear') {
-      currentState = {};
-    } else if (action.type === 'addProperties') {
-      // Mescla o estado atual com as novas propriedades
-      currentState = { ...currentState, ...action.extraData };
-    } else if (action.type === 'removeProperties') {
-      // Cria uma cópia para manipular
-      currentState = { ...currentState };
+    switch (action.type) {
+      case 'clear':
+        // clear => cria um estado de objeto vazio
+        currentState = {};
+        break;
+      case 'addProperties':
+        // Mescla o estado atual com as novas propriedades
+        currentState = { ...currentState, ...action.extraData };
+        break;
+      case 'removeProperties':
+        // Cria uma cópia para manipular
+        currentState = { ...currentState };
 
-      action.keysToRemove.forEach((key) => {
-        delete currentState[key];
-      });
+        action.keysToRemove.forEach((key) => delete currentState[key]);
+        break;
+      default:
+        // Caso venha um tipo desconhecido, mantém o estado atual
+        break;
     }
+    // O "pulo do gato": Salva um NOVO clone no histórico.
+    // Se der push apenas em 'currentState', todos os passos do array
+    // apontariam para o mesmo objeto final (referência).
+    history.push({ ...currentState });
   }
-  listState.push({ ...currentState });
 
-  return listState;
+  return history;
 }
 
 module.exports = transformStateWithClones;
