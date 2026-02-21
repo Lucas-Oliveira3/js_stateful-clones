@@ -8,49 +8,66 @@
  */
 function transformStateWithClones(state, actions) {
   // write code here
-  /*
-  state => Objeto
-  actions => array
-  O objetivo é aplicar cada ação ao estado anterios e retornar um array
-  com a modificação.
-  */
-  // addProperties- adicionar todos key: valueos pares fornecidos na
-  // extraDatapropriedade ao novo state;
-  // removeProperties- Remover todas as chaves
-  // fornecidas na keysToRemovematriz do state. (ignorar chaves inexistentes)
-
   const history = [];
   // Começamos com um clone para garantir a imutabilidade do original
-  let currentState = { ...state };
+  let stateCopy = { ...state };
+
+  // assegurando actions
+  // eslint-disable-next-line no-param-reassign
+  actions = Array.isArray(actions) ? actions : [];
 
   // laço que irá realizar uma varredura em todas as actions
   for (const action of actions) {
     switch (action.type) {
       case 'clear':
         // clear => cria um estado de objeto vazio
-        currentState = {};
+        stateCopy = {};
         break;
       case 'addProperties':
-        // Mescla o estado atual com as novas propriedades
-        currentState = { ...currentState, ...action.extraData };
+        // validando a existencia de actions e verificando se é um objeto
+        if (action.extraData && typeof action.extraData === 'object') {
+          // Mesclando o estado atual com as novas propriedades
+          stateCopy = { ...stateCopy, ...action.extraData };
+        }
         break;
       case 'removeProperties':
-        // Cria uma cópia para manipular
-        currentState = { ...currentState };
+        // Verificando se a chave é do tipo array
+        if (Array.isArray(action.keysToRemove)) {
+          // Cria uma cópia do objeto para manipular
+          stateCopy = { ...stateCopy };
 
-        action.keysToRemove.forEach((key) => delete currentState[key]);
+          // pegandok a chave e percorrendo o array
+          action.keysToRemove.forEach((key) => {
+            if (key in stateCopy) {
+              // deletando a chave do objeto manipulado
+              delete stateCopy[key];
+            }
+          });
+        }
         break;
       default:
-        // Caso venha um tipo desconhecido, mantém o estado atual
-        break;
     }
-    // O "pulo do gato": Salva um NOVO clone no histórico.
-    // Se der push apenas em 'currentState', todos os passos do array
-    // apontariam para o mesmo objeto final (referência).
-    history.push({ ...currentState });
+
+    /**
+     * Salvando o objeto modificado em um novo array garantindo a imutabilidade
+     do state  original!
+     */
+    history.push({ ...stateCopy });
   }
 
   return history;
 }
 
 module.exports = transformStateWithClones;
+
+/*
+      Informações sobre a atividade
+  state => Objeto
+  actions => array
+  O objetivo é aplicar cada ação ao estado anterios e retornar um array
+  com a modificação.
+  * addProperties- adicionar todos key: valueos pares fornecidos na
+  * extraDatapropriedade ao novo state;
+  * removeProperties- Remover todas as chaves
+  * fornecidas na keysToRemovematriz do state. (ignorar chaves inexistentes)
+*/
